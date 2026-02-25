@@ -322,7 +322,12 @@ export default function App() {
     setTimeout(onDone, rolls.length * interval + 120);
   }
 
-  /* ===================== Player Attack via Cube ===================== */
+  
+  function setActiveSlotDiceSequence(seq){
+    setBattleSlots(prev => prev.map((s, idx) => idx === activeBattleIndex ? ({ ...s, diceSequence: seq }) : s));
+  }
+
+/* ===================== Player Attack via Cube ===================== */
   function playerAttackViaCube(){
     if (rolling) return;
     if (!activeChar || !activeWeapon) return;
@@ -332,9 +337,11 @@ export default function App() {
 
     const pre = precomputeTrueDMG(activeChar, activeWeapon);
     const base = chaosRollBase();
+    setActiveSlotDiceSequence(base.rolls ?? [base.first ?? 1]);
 
     // If "2" -> show cube 2 and open modal
     if (base.needsRiskChoice) {
+      setActiveSlotDiceSequence([2]);
       spinToFace(2, 900);
       setTimeout(() => {
         setRiskModal({ pre, chaosBase: base });
@@ -385,7 +392,17 @@ export default function App() {
       if (idx !== activeBattleIndex) return s;
       const enemyHP = clamp((s.enemyHP ?? s.enemyHPMax) - result.dmg, 0, s.enemyHPMax ?? 30);
       const playerLog = [{ id: uid(), text: `🎲 ${result.rolls.join("→")} | 💥 ${result.dmg} DMG` }, ...(s.playerLog ?? [])].slice(0, 80);
-      return { ...s, lastPlayerDMG: result.dmg, enemyHP, playerLog };
+      const popup = { id: uid(), value: result.dmg, kind: result.jackpot ? "jackpot" : "hit", ts: Date.now() };
+      // auto-clear popups a moment later (visual-only)
+      setTimeout(() => {
+        setBattleSlots(pp => pp.map((ss, j) => {
+          if (j !== activeBattleIndex) return ss;
+          const rest = (ss.popups ?? []).filter(x => x.id !== popup.id);
+          return { ...ss, popups: rest };
+        }));
+      }, 900);
+
+      return { ...s, lastPlayerDMG: result.dmg, enemyHP, playerLog, popups: [popup, ...(s.popups ?? [])].slice(0, 12) };
     }));
   }
 
@@ -397,6 +414,7 @@ export default function App() {
     setRolling(true);
     const base = riskModal.chaosBase; // rolls: [2]
     const chaos = { ...base, multiplier: 0.5, rolls: [2], needsRiskChoice: false };
+    setActiveSlotDiceSequence([2]);
     spinToFace(2, 540);
     setTimeout(() => {
       const result = finalizeDamage(activeChar, activeWeapon, riskModal.pre, chaos, false);
@@ -411,6 +429,7 @@ export default function App() {
     if (!riskModal || !activeChar || !activeWeapon) return;
     setRolling(true);
     const rr = resolveRiskReroll(); // {roll, multiplier}
+    setActiveSlotDiceSequence([2, rr.roll]);
     // animate to risk roll face quickly
     spinToFace(rr.roll, 780);
 

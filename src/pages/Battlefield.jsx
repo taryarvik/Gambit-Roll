@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
+import Dice from "../ui/Dice.jsx";
 
 export default function BattlefieldPage({
   characters, bestiary,
@@ -56,7 +57,7 @@ export default function BattlefieldPage({
               <span className="mono">{slot.playerHP}/{slot.playerHPMax}</span>
             </div>
             <div style={{ height: 10, background:"rgba(0,0,0,.25)", borderRadius:999, marginTop:8, overflow:"hidden", border:"1px solid rgba(59,29,99,.55)" }}>
-              <div style={{ height: 10, width: hpPct(slot.playerHP, slot.playerHPMax), background:"linear-gradient(90deg, rgba(52,211,153,.85), rgba(233,201,129,.18))" }} />
+              <motion.div style={{ height: 10, background:"linear-gradient(90deg, rgba(52,211,153,.85), rgba(233,201,129,.18))" }} animate={{ width: hpPct(slot.playerHP, slot.playerHPMax) }} transition={{ duration: 0.35, ease: "easeOut" }} />
             </div>
           </div>
           <div className="panel-inner">
@@ -65,7 +66,7 @@ export default function BattlefieldPage({
               <span className="mono">{slot.enemyHP}/{slot.enemyHPMax}</span>
             </div>
             <div style={{ height: 10, background:"rgba(0,0,0,.25)", borderRadius:999, marginTop:8, overflow:"hidden", border:"1px solid rgba(59,29,99,.55)" }}>
-              <div style={{ height: 10, width: hpPct(slot.enemyHP, slot.enemyHPMax), background:"linear-gradient(90deg, rgba(52,211,153,.85), rgba(233,201,129,.18))" }} />
+              <motion.div style={{ height: 10, background:"linear-gradient(90deg, rgba(52,211,153,.85), rgba(233,201,129,.18))" }} animate={{ width: hpPct(slot.enemyHP, slot.enemyHPMax) }} transition={{ duration: 0.35, ease: "easeOut" }} />
             </div>
           </div>
         </div>
@@ -85,50 +86,16 @@ export default function BattlefieldPage({
             <div style={{ height: 10 }} />
 
             <div className="row" style={{ justifyContent:"center" }}>
-              <div style={{ perspective: 1000 }}>
-                <button className="btn" onClick={playerAttackViaCube} disabled={rolling} style={{ borderRadius: 20 }}>
-                  <motion.div
-                    animate={{ rotateX: cubeRotation.x, rotateY: cubeRotation.y }}
-                    transition={{ duration: 0.18, ease: [0.2,0.8,0.2,1] }}
-                    style={{ width: 88, height: 88, position:"relative", transformStyle:"preserve-3d" }}
-                  >
-                    {[1,2,3,4,5,6].map(n => (
-                      <div
-                        key={n}
-                        className="dice-face"
-                        style={{
-                          position:"absolute",
-                          width: 88, height: 88,
-                          borderRadius: 18,
-                          display:"flex", alignItems:"center", justifyContent:"center",
-                          fontSize: 34, fontWeight: 900,
-                          color:"white",
-                          textShadow:"0 0 10px rgba(0,0,0,.45), 0 0 12px rgba(168,85,247,.55)",
-                          boxShadow:"0 0 18px rgba(168,85,247,.35)",
-                          transform:
-                            n===1 ? "rotateY(0deg) translateZ(44px)" :
-                            n===2 ? "rotateX(90deg) translateZ(44px)" :
-                            n===3 ? "rotateY(-90deg) translateZ(44px)" :
-                            n===4 ? "rotateY(90deg) translateZ(44px)" :
-                            n===5 ? "rotateX(-90deg) translateZ(44px)" :
-                                    "rotateX(180deg) translateZ(44px)"
-                        }}
-                      >
-                        {n}
-                      </div>
-                    ))}
-                  </motion.div>
-                  <div className="label" style={{ fontSize: 10, marginTop: 8, textAlign:"center" }}>
-                    CLICK D6
-                  </div>
-                </button>
-              </div>
+              <Dice
+                sequence={slot.diceSequence ?? [1]}
+                isRolling={rolling}
+                disabled={rolling}
+                onClick={playerAttackViaCube}
+                label="CHAOS ROLL"
+              />
             </div>
 
-            <div className="ruleline" />
-
-            <div className="label">Local Danger</div>
-            <div className="row" style={{ marginTop: 8 }}>
+<div className="row" style={{ marginTop: 8 }}>
               {["D","C","B","A","S","SS","SSS"].map(d => (
                 <button
                   key={d}
@@ -165,8 +132,46 @@ export default function BattlefieldPage({
                   </div>
                 </div>
 
-                <div style={{ fontSize: 64, padding: "0 10px", filter:"drop-shadow(0 0 12px rgba(168,85,247,.35))" }}>
-                  ⚔️
+                <div style={{ position: "relative", width: 110, height: 110, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                  <AnimatePresence>
+                    {(slot.popups ?? []).map(p => (
+                      <motion.div
+                        key={p.id}
+                        initial={{ opacity: 0, y: 14, scale: 0.85, filter: "blur(2px)" }}
+                        animate={{
+                          opacity: 1,
+                          y: -26,
+                          scale: p.kind === "jackpot" ? 1.25 : 1.05,
+                          filter: "blur(0px)"
+                        }}
+                        exit={{ opacity: 0, y: -52, scale: 0.9, filter: "blur(3px)" }}
+                        transition={{ duration: 0.65, ease: "easeOut" }}
+                        style={{
+                          position: "absolute",
+                          left: "50%",
+                          top: "50%",
+                          transform: "translate(-50%,-50%)",
+                          fontSize: p.kind === "jackpot" ? 34 : 28,
+                          fontWeight: 900,
+                          letterSpacing: 0.5,
+                          color: "var(--gold)",
+                          textShadow:
+                            p.kind === "jackpot"
+                              ? "0 0 16px rgba(168,85,247,.65), 0 0 22px rgba(233,201,129,.35)"
+                              : "0 0 14px rgba(168,85,247,.35)",
+                          pointerEvents: "none",
+                          userSelect: "none",
+                          whiteSpace: "nowrap"
+                        }}
+                      >
+                        {p.kind === "jackpot" ? `✦ ${p.value} ✦` : `-${p.value}`}
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+
+                  <div style={{ fontSize: 64, padding: "0 10px", filter:"drop-shadow(0 0 12px rgba(168,85,247,.35))" }}>
+                    ⚔️
+                  </div>
                 </div>
 
                 <div className="panel-inner" style={{ flex: 1, textAlign:"center" }}>
