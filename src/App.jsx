@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import DnDTheme from "./ui/DnDTheme.jsx";
+import JackpotCasinoModal from "./ui/JackpotCasinoModal.jsx";
 import CharactersPage from "./pages/Characters.jsx";
 import BestiaryPage from "./pages/Bestiary.jsx";
 import BattlefieldPage from "./pages/Battlefield.jsx";
@@ -50,6 +51,7 @@ export default function App() {
 
   // risk modal for "2"
   const [riskModal, setRiskModal] = useState(null);
+const [jackpotModal, setJackpotModal] = useState(null);
   // riskModal = null | { pre, chaosBase }
 
   // sync
@@ -288,7 +290,11 @@ export default function App() {
     const breakdown = [...pre.breakdown];
 
     breakdown.push(`[C] rolls = ${chaos.rolls.join("→")}`);
-    breakdown.push(`[C] Chaos x${chaos.multiplier} => ${(pre.preChaos * chaos.multiplier).toFixed(2)}`);
+    breakdown\.push\(`\[C\] Chaos x\$\{chaos\.multiplier\} => \$\{\(pre\.preChaos \* chaos\.multiplier\)\.toFixed\(2\)\}`\);
+    if (chaos.casino) {
+      breakdown.push(`[🎰] Casino reels = ${chaos.casino.vals.join(" | ")} (6s=${chaos.casino.sixCount}) => +${chaos.casino.bonus}`);
+      breakdown.push(`[🎰] Final chaos multiplier = x${chaos.multiplier}`);
+    }
 
     let stage = pre.preChaos * chaos.multiplier;
 
@@ -355,6 +361,10 @@ export default function App() {
       if (base.jackpot) {
         setJackpotFlash(true);
         setTimeout(() => setJackpotFlash(false), 320);
+        // казино-бонус: 3 слота (вариант C + 2)
+        setJackpotModal({ pre, chaosBase: base, char: activeChar, weapon: activeWeapon });
+        setRolling(false);
+        return;
       }
 
       const result = finalizeDamage(activeChar, activeWeapon, pre, base, false);
@@ -407,7 +417,7 @@ export default function App() {
   }
 
   /* ===================== Risk Modal handlers ===================== */
-  const modalOpen = !!riskModal;
+  const modalOpen = !!riskModal || !!jackpotModal;
 
   function riskKeep(){
     if (!riskModal || !activeChar || !activeWeapon) return;
@@ -622,9 +632,34 @@ export default function App() {
         )}
       </AnimatePresence>
 
+      <JackpotCasinoModal
+        open={!!jackpotModal}
+        baseMult={jackpotModal?.chaosBase?.multiplier ?? 3}
+        onResolve={jackpotResolve}
+      />
+
       <div className="hint" style={{ position:"relative", zIndex:3, textAlign:"center", marginTop: 14, opacity: .8 }}>
         Chaos Roll: 1 miss • 2 choice • 3×1 • 4×1.5 • 5×2 • 6 jackpot chain (berserk)
       </div>
     </div>
   );
 }
+
+  function jackpotResolve({ vals, sixCount, bonus }) {
+    const jm = jackpotModal;
+    if (!jm) return;
+
+    const chaos = {
+      ...jm.chaosBase,
+      multiplier: (jm.chaosBase.multiplier ?? 0) + (bonus ?? 0),
+      casino: { vals, sixCount, bonus }
+    };
+
+    const result = finalizeDamage(jm.char, jm.weapon, jm.pre, chaos, false);
+    applyResultToCharacter(jm.char.id, result);
+    applyResultToBattlefield(result);
+
+    setJackpotModal(null);
+    // ensure dice shows final result
+    setActiveSlotDiceSequence(result.rolls ?? [1]);
+  }

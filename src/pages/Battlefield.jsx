@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import Dice from "../ui/Dice.jsx";
+import Dice3D from "../ui/Dice3D.jsx";
 
 export default function BattlefieldPage({
   characters, bestiary,
@@ -86,7 +86,10 @@ export default function BattlefieldPage({
             <div style={{ height: 10 }} />
 
             <div className="row" style={{ justifyContent:"center" }}>
-              <Dice
+              <Dice3D
+                cubeRotation={cubeRotation}
+                jackpotGlow={jackpotFlash}
+
                 sequence={slot.diceSequence ?? [1]}
                 isRolling={rolling}
                 disabled={rolling}
@@ -132,7 +135,7 @@ export default function BattlefieldPage({
                   </div>
                 </div>
 
-                <div style={{ position: "relative", width: 110, height: 110, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                <div style={{ position: "relative", width: 110, height: 110, display:"flex", alignItems:"center", justifyContent:"center", position:"relative" }}>
                   <AnimatePresence>
                     {(slot.popups ?? []).map(p => (
                       <motion.div
@@ -147,10 +150,10 @@ export default function BattlefieldPage({
                         exit={{ opacity: 0, y: -110, scale: 0.95, filter: "blur(3px)" }}
                         transition={{ duration: 0.75, ease: "easeOut" }}
                         style={{
-                          position: "fixed",
+                          position: "absolute",
                           left: "50%",
-                          top: "38%",
-                          transform: "translate(-50%,-50%)",
+                          top: "-28px",
+                          transform: "translateX(-50%)",
                           fontSize: p.kind === "jackpot" ? 56 : 46,
                           fontWeight: 900,
                           letterSpacing: 0.8,
