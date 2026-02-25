@@ -137,28 +137,30 @@ export default function BattlefieldPage({
                     {(slot.popups ?? []).map(p => (
                       <motion.div
                         key={p.id}
-                        initial={{ opacity: 0, y: 14, scale: 0.85, filter: "blur(2px)" }}
+                        initial={{ opacity: 0, y: 18, scale: 0.9, filter: "blur(2px)" }}
                         animate={{
                           opacity: 1,
-                          y: -26,
-                          scale: p.kind === "jackpot" ? 1.25 : 1.05,
+                          y: -70,
+                          scale: p.kind === "jackpot" ? 1.35 : 1.12,
                           filter: "blur(0px)"
                         }}
-                        exit={{ opacity: 0, y: -52, scale: 0.9, filter: "blur(3px)" }}
-                        transition={{ duration: 0.65, ease: "easeOut" }}
+                        exit={{ opacity: 0, y: -110, scale: 0.95, filter: "blur(3px)" }}
+                        transition={{ duration: 0.75, ease: "easeOut" }}
                         style={{
-                          position: "absolute",
+                          position: "fixed",
                           left: "50%",
-                          top: "50%",
+                          top: "38%",
                           transform: "translate(-50%,-50%)",
-                          fontSize: p.kind === "jackpot" ? 34 : 28,
+                          fontSize: p.kind === "jackpot" ? 56 : 46,
                           fontWeight: 900,
-                          letterSpacing: 0.5,
-                          color: "var(--gold)",
+                          letterSpacing: 0.8,
+                          color: "rgba(255,245,215,1)",
+                          zIndex: 99999,
                           textShadow:
                             p.kind === "jackpot"
-                              ? "0 0 16px rgba(168,85,247,.65), 0 0 22px rgba(233,201,129,.35)"
-                              : "0 0 14px rgba(168,85,247,.35)",
+                              ? "0 0 18px rgba(168,85,247,.85), 0 0 36px rgba(233,201,129,.55), 0 0 64px rgba(168,85,247,.35)"
+                              : "0 0 16px rgba(168,85,247,.55), 0 0 30px rgba(233,201,129,.25)",
+                          filter: "drop-shadow(0 10px 22px rgba(0,0,0,.55))",
                           pointerEvents: "none",
                           userSelect: "none",
                           whiteSpace: "nowrap"

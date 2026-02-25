@@ -21,10 +21,10 @@ function Pips({ n }) {
         display: "grid",
         gridTemplateColumns: "repeat(3, 1fr)",
         gridTemplateRows: "repeat(3, 1fr)",
-        gap: 8,
+        gap: 10,
         width: "100%",
         height: "100%",
-        padding: 18,
+        padding: 16,
       }}
     >
       {Array.from({ length: 9 }).map((_, i) => {
@@ -45,11 +45,11 @@ function Pips({ n }) {
           >
             <div
               style={{
-                width: 10,
-                height: 10,
+                width: 14,
+                height: 14,
                 borderRadius: 999,
                 background: "rgba(255,255,255,.92)",
-                boxShadow: "0 0 10px rgba(168,85,247,.55)",
+                boxShadow: "0 0 14px rgba(168,85,247,.75), 0 0 22px rgba(233,201,129,.20)",
               }}
             />
           </div>
@@ -103,39 +103,67 @@ export default function Dice({
       onClick={onClick}
       disabled={disabled}
       className="btn"
-      style={{ borderRadius: 22, padding: 14, width: 170 }}
+      style={{ borderRadius: 24, padding: 14, width: 190 }}
       aria-label="Roll D6"
     >
-      <motion.div
-        animate={
-          isRolling
-            ? { rotate: [0, 40, -35, 30, -25, 18, -12, 0], scale: [1, 1.04, 1, 1.03, 1] }
-            : { rotate: 0, scale: 1 }
-        }
-        transition={{ duration: isRolling ? 0.75 : 0.2, ease: "easeInOut" }}
-        style={{
-          width: 110,
-          height: 110,
-          margin: "0 auto",
-          borderRadius: 26,
-          background: "linear-gradient(145deg, rgba(168,85,247,.85), rgba(46,16,99,.95))",
-          border: "1px solid rgba(0,0,0,.55)",
-          boxShadow: "0 0 24px rgba(168,85,247,.45), inset 0 0 22px rgba(233,201,129,.10)",
-          position: "relative",
-          overflow: "hidden",
-        }}
-      >
-        <Pips n={face} />
-        <div
+      <div style={{ perspective: 900 }}>
+        <motion.div
+          animate={
+            isRolling
+              ? {
+                  rotateX: [0, 280, 720, 1080],
+                  rotateY: [0, 360, 900, 1260],
+                  rotateZ: [0, 18, -14, 10, -6, 0],
+                  scale: [1, 1.06, 1.02, 1.06, 1],
+                }
+              : { rotateX: 18, rotateY: -22, rotateZ: 0, scale: 1 }
+          }
+          transition={{ duration: isRolling ? 0.9 : 0.25, ease: "easeInOut" }}
           style={{
-            position: "absolute",
-            inset: 0,
-            background:
-              "radial-gradient(closest-side at 30% 25%, rgba(255,255,255,.18), transparent 55%)",
-            pointerEvents: "none",
+            width: 124,
+            height: 124,
+            margin: "0 auto",
+            borderRadius: 30,
+            background: "linear-gradient(145deg, rgba(168,85,247,.92), rgba(46,16,99,.98))",
+            border: "1px solid rgba(0,0,0,.55)",
+            boxShadow:
+              "0 18px 38px rgba(0,0,0,.55), 0 0 34px rgba(168,85,247,.45), inset 0 0 26px rgba(233,201,129,.12)",
+            position: "relative",
+            overflow: "hidden",
+            transformStyle: "preserve-3d",
           }}
-        />
-      </motion.div>
+        >
+          {/* face */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              transform: "translateZ(18px)",
+              borderRadius: 30,
+              background:
+                "radial-gradient(closest-side at 30% 25%, rgba(255,255,255,.22), transparent 55%), linear-gradient(180deg, rgba(255,255,255,.08), transparent 55%)",
+            }}
+          />
+
+          {/* subtle edge shading */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              borderRadius: 30,
+              background:
+                "linear-gradient(135deg, rgba(0,0,0,.35), transparent 45%), linear-gradient(315deg, rgba(0,0,0,.25), transparent 40%)",
+              mixBlendMode: "multiply",
+              pointerEvents: "none",
+            }}
+          />
+
+          {/* pips (always upright) */}
+          <div style={{ position: "absolute", inset: 0 }}>
+            <Pips n={face} />
+          </div>
+        </motion.div>
+      </div>
 
       <div className="label" style={{ fontSize: 10, marginTop: 10, textAlign: "center" }}>
         {label}
